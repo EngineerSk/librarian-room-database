@@ -40,6 +40,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.raywenderlich.android.librarian.App
 import com.raywenderlich.android.librarian.R
 import com.raywenderlich.android.librarian.model.Genre
 import com.raywenderlich.android.librarian.model.ReadingEntry
@@ -54,102 +55,102 @@ import java.util.*
 
 class BookReviewDetailsActivity : AppCompatActivity() {
 
-  private var bookReview: BookReview? = null
-  private val adapter by lazy { ReadingEntryAdapter(::onItemLongTapped) }
+    private val repository by lazy { App.repository }
+    private var bookReview: BookReview? = null
+    private val adapter by lazy { ReadingEntryAdapter(::onItemLongTapped) }
 
-  companion object {
-    private const val KEY_BOOK_REVIEW = "book_review"
+    companion object {
+        private const val KEY_BOOK_REVIEW = "book_review"
 
-    fun getIntent(context: Context, review: BookReview): Intent {
-      val intent = Intent(context, BookReviewDetailsActivity::class.java)
+        fun getIntent(context: Context, review: BookReview): Intent {
+            val intent = Intent(context, BookReviewDetailsActivity::class.java)
 
-      intent.putExtra(KEY_BOOK_REVIEW, review)
-      return intent
-    }
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_book_review_details)
-    initUi()
-  }
-
-  private fun initUi() {
-    readingEntriesRecyclerView.layoutManager = LinearLayoutManager(this)
-    readingEntriesRecyclerView.adapter = adapter
-    addReadingEntry.setOnClickListener {
-      val dialog = AddReadingEntryDialogFragment { readingEntry ->
-        addNewEntry(readingEntry)
-      }
-      dialog.show(supportFragmentManager, null)
-    }
-
-    loadData()
-  }
-
-  private fun loadData() {
-    val review: BookReview = intent?.getParcelableExtra(KEY_BOOK_REVIEW) ?: return
-    val reviewId = review.review.id
-
-    displayData(reviewId)
-  }
-
-  // TODO fetch genre data
-  private fun displayData(reviewId: String) {
-    refreshData(reviewId)
-    val data = bookReview ?: return
-    val genre = Genre(data.book.genreId, "")
-
-    Glide.with(this).load(data.review.imageUrl).into(bookImage)
-    reviewTitle.text = data.book.name
-    reviewRating.rating = data.review.rating.toFloat()
-    reviewDescription.text = data.review.notes
-    lastUpdated.text = formatDateToText(data.review.lastUpdatedDate)
-    bookGenre.text = genre.name
-
-    adapter.setData(data.review.entries)
-  }
-
-  private fun refreshData(id: String) {
-    return
-    val storedReview = null // TODO fetch review
-
-    bookReview = storedReview
-  }
-
-  private fun onItemLongTapped(readingEntry: ReadingEntry) {
-    createAndShowDialog(
-        this,
-        getString(R.string.delete_title),
-        getString(R.string.delete_entry_message),
-        onPositiveAction = {
-          removeReadingEntry(readingEntry)
+            intent.putExtra(KEY_BOOK_REVIEW, review)
+            return intent
         }
-    )
-  }
+    }
 
-  private fun addNewEntry(readingEntry: ReadingEntry) {
-    val data = bookReview?.review ?: return
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_book_review_details)
+        initUi()
+    }
 
-    val updatedReview = data.copy(entries = data.entries + readingEntry,
-        lastUpdatedDate = Date())
+    private fun initUi() {
+        readingEntriesRecyclerView.layoutManager = LinearLayoutManager(this)
+        readingEntriesRecyclerView.adapter = adapter
+        addReadingEntry.setOnClickListener {
+            val dialog = AddReadingEntryDialogFragment { readingEntry ->
+                addNewEntry(readingEntry)
+            }
+            dialog.show(supportFragmentManager, null)
+        }
 
-    // TODO update review
-    toast("Entry added!")
+        loadData()
+    }
 
-    displayData(data.id)
-  }
+    private fun loadData() {
+        val review: BookReview = intent?.getParcelableExtra(KEY_BOOK_REVIEW) ?: return
+        val reviewId = review.review.id
 
-  private fun removeReadingEntry(readingEntry: ReadingEntry) {
-    val data = bookReview ?: return
-    val currentReview = data.review
+        displayData(reviewId)
+    }
 
-    val newReview = currentReview.copy(
-        entries = currentReview.entries - readingEntry,
-        lastUpdatedDate = Date()
-    )
-    // TODO update review
+    // TODO fetch genre data
+    private fun displayData(reviewId: String) {
+        refreshData(reviewId)
+        val data = bookReview ?: return
+        val genre = repository.getGenreById(data.book.genreId)
 
-    loadData()
-  }
+        Glide.with(this).load(data.review.imageUrl).into(bookImage)
+        reviewTitle.text = data.book.name
+        reviewRating.rating = data.review.rating.toFloat()
+        reviewDescription.text = data.review.notes
+//    lastUpdated.text = formatDateToText(data.review.lastUpdatedDate)
+        bookGenre.text = genre.name
+
+//    adapter.setData(data.review.entries)
+    }
+
+    private fun refreshData(id: String) {
+        val storedReview = repository.getReviewById(id) // TODO fetch review
+
+        bookReview = storedReview
+    }
+
+    private fun onItemLongTapped(readingEntry: ReadingEntry) {
+        createAndShowDialog(
+            this,
+            getString(R.string.delete_title),
+            getString(R.string.delete_entry_message),
+            onPositiveAction = {
+                removeReadingEntry(readingEntry)
+            }
+        )
+    }
+
+    private fun addNewEntry(readingEntry: ReadingEntry) {
+        val data = bookReview?.review ?: return
+
+//    val updatedReview = data.copy(entries = data.entries + readingEntry,
+//        lastUpdatedDate = Date())
+
+        // TODO update review
+        toast("Entry added!")
+
+        displayData(data.id)
+    }
+
+    private fun removeReadingEntry(readingEntry: ReadingEntry) {
+        val data = bookReview ?: return
+        val currentReview = data.review
+
+//    val newReview = currentReview.copy(
+//        entries = currentReview.entries - readingEntry,
+//        lastUpdatedDate = Date()
+//    )
+        // TODO update review
+
+        loadData()
+    }
 }

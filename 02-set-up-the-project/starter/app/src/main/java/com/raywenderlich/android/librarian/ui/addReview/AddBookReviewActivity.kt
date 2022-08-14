@@ -40,6 +40,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import com.raywenderlich.android.librarian.App
 import com.raywenderlich.android.librarian.R
 import com.raywenderlich.android.librarian.model.Review
 import kotlinx.android.synthetic.main.activity_add_book_review.*
@@ -47,46 +48,51 @@ import java.util.*
 
 class AddBookReviewActivity : AppCompatActivity() {
 
-  companion object {
-    fun getIntent(context: Context) = Intent(context, AddBookReviewActivity::class.java)
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_add_book_review)
-    initUi()
-  }
-
-  private fun initUi() {
-    bookOption.adapter = ArrayAdapter(
-        this@AddBookReviewActivity,
-        android.R.layout.simple_spinner_dropdown_item,
-        listOf<String>()
-    )
-
-    addReview.setOnClickListener { addBookReview() }
-  }
-
-  // TODO save a book
-  private fun addBookReview() {
-    val rating = reviewRating.rating.toInt()
-    val bookId = ""
-
-    val imageUrl = bookImageUrl.text.toString()
-    val notes = reviewNotes.text.toString()
-
-    if (bookId != null && imageUrl.isNotBlank() && notes.isNotBlank()) {
-      val bookReview = Review(
-          bookId = bookId,
-          rating = rating,
-          notes = notes,
-          imageUrl = imageUrl,
-          entries = emptyList(),
-          lastUpdatedDate = Date()
-      )
-
-      setResult(Activity.RESULT_OK)
-      finish()
+    private val repository by lazy {
+        App.repository
     }
-  }
+
+    companion object {
+        fun getIntent(context: Context) = Intent(context, AddBookReviewActivity::class.java)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_add_book_review)
+        initUi()
+    }
+
+    private fun initUi() {
+        bookOption.adapter = ArrayAdapter(
+            this@AddBookReviewActivity,
+            android.R.layout.simple_spinner_dropdown_item,
+            repository.getBooks().map { it.book.name }
+        )
+
+        addReview.setOnClickListener { addBookReview() }
+    }
+
+    // TODO save a book
+    private fun addBookReview() {
+        val rating = reviewRating.rating.toInt()
+        val bookId =
+            repository.getBooks().firstOrNull { it.book.name == bookOption.selectedItem }?.book?.id
+
+        val imageUrl = bookImageUrl.text.toString()
+        val notes = reviewNotes.text.toString()
+
+        if (bookId != null && imageUrl.isNotBlank() && notes.isNotBlank()) {
+            val bookReview = Review(
+                bookId = bookId,
+                rating = rating,
+                notes = notes,
+                imageUrl = imageUrl
+//                entries = emptyList(),
+//                lastUpdatedDate = Date()
+            )
+
+            setResult(Activity.RESULT_OK)
+            finish()
+        }
+    }
 }

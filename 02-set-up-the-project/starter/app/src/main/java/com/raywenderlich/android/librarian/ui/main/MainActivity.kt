@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun initUi() {
-    bottomNavigation.setOnNavigationItemSelectedListener { menuItem ->
+    bottomNavigation.setOnItemSelectedListener { menuItem ->
       displayNextFragment(menuItem.itemId)
       true
     }

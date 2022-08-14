@@ -41,82 +41,91 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.fragment.app.DialogFragment
+import com.raywenderlich.android.librarian.App
 import com.raywenderlich.android.librarian.R
 import com.raywenderlich.android.librarian.model.Genre
 import kotlinx.android.synthetic.main.dialog_filter_books.*
 
-class FilterPickerDialogFragment(private val onFilterSelected: (Filter?) -> Unit)
-  : DialogFragment() {
+class FilterPickerDialogFragment(private val onFilterSelected: (Filter?) -> Unit) :
+    DialogFragment() {
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-      savedInstanceState: Bundle?): View? {
-    return inflater.inflate(R.layout.dialog_filter_books, container, false)
-  }
+    private val repository by lazy {
+        App.repository
+    }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    initUi()
-  }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.dialog_filter_books, container, false)
+    }
 
-  private fun initUi() {
-    filterOptions.setOnCheckedChangeListener { _, checkedId ->
-      updateOptions(checkedId)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initUi()
+    }
+
+    private fun initUi() {
+        filterOptions.setOnCheckedChangeListener { _, checkedId ->
+            updateOptions(checkedId)
+        }
+
+        // TODO fetch genres from DB
+        genrePicker.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            repository.getGenres().map { it.name }
+        )
+
+        selectFilter.setOnClickListener { filterBooks() }
     }
 
     // TODO fetch genres from DB
-    genrePicker.adapter = ArrayAdapter(
-        requireContext(),
-        android.R.layout.simple_spinner_dropdown_item,
-        listOf<Genre>().map { it.name }
-    )
+    private fun filterBooks() {
+        val selectedGenre = repository.getGenres().firstOrNull { genre ->
+            genre.name == genrePicker.selectedItem
+        }?.id
 
-    selectFilter.setOnClickListener { filterBooks() }
-  }
+        val rating = ratingPicker.rating.toInt()
 
-  // TODO fetch genres from DB
-  private fun filterBooks() {
-    val selectedGenre = listOf<Genre>().firstOrNull { genre ->
-      genre.name == genrePicker.selectedItem
-    }?.id
+        if (selectedGenre == null && filterOptions.checkedRadioButtonId == R.id.byGenreFilter) {
+            return
+        }
 
-    val rating = ratingPicker.rating.toInt()
+        if ((rating < 1 || rating > 5) && filterOptions.checkedRadioButtonId == R.id.byRatingFilter) {
+            return
+        }
 
-    if (selectedGenre == null && filterOptions.checkedRadioButtonId == R.id.byGenreFilter) {
-      return
+        val filter = when (filterOptions.checkedRadioButtonId) {
+            R.id.byGenreFilter -> ByGenre(selectedGenre ?: "")
+            R.id.byRatingFilter -> ByRating(ratingPicker.rating.toInt())
+            else -> null
+        }
+
+        onFilterSelected(filter)
+        dismissAllowingStateLoss()
     }
 
-    if ((rating < 1 || rating > 5) && filterOptions.checkedRadioButtonId == R.id.byRatingFilter) {
-      return
+    private fun updateOptions(checkedId: Int) {
+        if (checkedId == noFilter.id) {
+            genrePicker.visibility = View.GONE
+            ratingPicker.visibility = View.GONE
+        }
+
+        genrePicker.visibility = if (checkedId == byGenreFilter.id) View.VISIBLE else View.GONE
+        ratingPicker.visibility = if (checkedId == byRatingFilter.id) View.VISIBLE else View.GONE
     }
 
-    val filter = when (filterOptions.checkedRadioButtonId) {
-      R.id.byGenreFilter -> ByGenre(selectedGenre ?: "")
-      R.id.byRatingFilter -> ByRating(ratingPicker.rating.toInt())
-      else -> null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NO_TITLE, R.style.FragmentDialogTheme)
     }
 
-    onFilterSelected(filter)
-    dismissAllowingStateLoss()
-  }
-
-  private fun updateOptions(checkedId: Int) {
-    if (checkedId == noFilter.id) {
-      genrePicker.visibility = View.GONE
-      ratingPicker.visibility = View.GONE
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT
+        )
     }
-
-    genrePicker.visibility = if (checkedId == byGenreFilter.id) View.VISIBLE else View.GONE
-    ratingPicker.visibility = if (checkedId == byRatingFilter.id) View.VISIBLE else View.GONE
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setStyle(STYLE_NO_TITLE, R.style.FragmentDialogTheme)
-  }
-
-  override fun onStart() {
-    super.onStart()
-    dialog?.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
-        WindowManager.LayoutParams.WRAP_CONTENT)
-  }
 }
