@@ -46,3 +46,22 @@ val migration_2_3 = object : Migration(2, 3) {
     database.execSQL("ALTER TABLE Review ADD COLUMN entries TEXT NOT NULL DEFAULT ''")
   }
 }
+
+val migration_3_4=object : Migration(3,4){
+  /**
+   * Should run the necessary migrations.
+   *
+   *
+   * This class cannot access any generated Dao in this method.
+   *
+   *
+   * This method is already called inside a transaction and that transaction might actually be a
+   * composite transaction of all necessary `Migration`s.
+   *
+   * @param database The database instance
+   */
+  override fun migrate(database: SupportSQLiteDatabase) {
+    database.execSQL("ALTER TABLE ReadingList ADD COLUMN bookIds TEXT NOT NULL DEFAULT ''")
+  }
+
+}

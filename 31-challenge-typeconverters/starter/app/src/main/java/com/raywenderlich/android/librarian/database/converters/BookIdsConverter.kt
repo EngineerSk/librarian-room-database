@@ -37,5 +37,16 @@ import com.google.gson.reflect.TypeToken
 import com.raywenderlich.android.librarian.App
 
 class BookIdsConverter {
+    @TypeConverter
+    fun fromListToJson(list: List<String>): String = App.gson.toJson(list)
 
+    @TypeConverter
+    fun fromJsonToList(json: String): List<String> {
+        val listType = object : TypeToken<List<String>>() {}.type
+        return try {
+            App.gson.fromJson(json, listType)
+        } catch (error: Throwable) {
+            emptyList()
+        }
+    }
 }
