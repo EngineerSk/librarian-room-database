@@ -18,16 +18,21 @@
     <!-- Main Activity -->
     <activity
       android:name=".ui.main.MainActivity"
-      android:theme="@style/SplashTheme">
+      android:theme="@style/SplashTheme"
+        android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
 
-    <activity android:name=".ui.readingListDetails.ReadingListDetailsActivity" />
-    <activity android:name=".ui.bookReviewDetails.BookReviewDetailsActivity" />
-    <activity android:name=".ui.addBook.AddBookActivity" />
-    <activity android:name=".ui.addReview.AddBookReviewActivity" />
+    <activity android:name=".ui.readingListDetails.ReadingListDetailsActivity"
+        android:exported="false"/>
+    <activity android:name=".ui.bookReviewDetails.BookReviewDetailsActivity"
+        android:exported="false"/>
+    <activity android:name=".ui.addBook.AddBookActivity"
+        android:exported="false"/>
+    <activity android:name=".ui.addReview.AddBookReviewActivity"
+        android:exported="false"/>
   </application>
 </manifest>
