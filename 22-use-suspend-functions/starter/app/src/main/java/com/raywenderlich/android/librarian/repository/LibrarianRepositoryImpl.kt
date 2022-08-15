@@ -51,13 +51,13 @@ class LibrarianRepositoryImpl(
     private val reviewDao: ReviewDao
 ) : LibrarianRepository {
 
-  override fun addBook(book: Book) = bookDao.addBook(book)
+  override suspend fun addBook(book: Book) = bookDao.addBook(book)
 
-  override fun getBooks(): List<BookAndGenre> = bookDao.getBooks()
+  override suspend fun getBooks(): List<BookAndGenre> = bookDao.getBooks()
 
   override fun getBookById(bookId: String): Book = bookDao.getBookById(bookId)
 
-  override fun removeBook(book: Book) = bookDao.removeBook(book)
+  override suspend fun removeBook(book: Book) = bookDao.removeBook(book)
 
   override fun getGenres(): List<Genre> = genreDao.getGenres()
 
@@ -75,14 +75,14 @@ class LibrarianRepositoryImpl(
 
   override fun updateReview(review: Review) = reviewDao.updateReview(review)
 
-  override fun addReadingList(readingList: ReadingList) = readingListDao.addReadingList(readingList)
+  override suspend fun addReadingList(readingList: ReadingList) = readingListDao.addReadingList(readingList)
 
-  override fun getReadingLists(): List<ReadingListsWithBooks> =
+  override suspend fun getReadingLists(): List<ReadingListsWithBooks> =
       readingListDao.getReadingLists().map {
         ReadingListsWithBooks(it.id, it.name, emptyList())
       }
 
-  override fun removeReadingList(readingList: ReadingList) =
+  override suspend fun removeReadingList(readingList: ReadingList) =
       readingListDao.removeReadingList(readingList)
 
   override fun getBooksByGenre(genreId: String): List<BookAndGenre> =
